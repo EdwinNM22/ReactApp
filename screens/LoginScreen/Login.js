@@ -1,72 +1,253 @@
-import React, { useState } from 'react'
-import { Text, StyleSheet, View, TextInput, Button, Alert } from 'react-native'
+import {Text,StyleSheet,View,TextInput,TouchableOpacity,Alert,Image,KeyboardAvoidingView,Platform,} from "react-native";
+import React, { useState } from "react";
 
-import { auth } from '../../firebase-config'; 
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import appFirebase from "../../firebase-config";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
-export default function Login({ navigation }) {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+const auth = getAuth(appFirebase);
+const db = getFirestore(appFirebase);
 
-  const handleLogin = () => {
-    if (username.trim() === '' || password.trim() === '') {
-      Alert.alert('Error', 'Por favor ingresa usuario y contraseña')
-      return
+export default function Login(props) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isFocusedEmail, setIsFocusedEmail] = useState(false);
+  const [isFocusedPassword, setIsFocusedPassword] = useState(false);
+
+  const Logueo = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // Obtener el rol desde Firestore
+      const docRef = doc(db, "usuarios", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const rol = docSnap.data().rol;
+
+        if (rol === "ADMIN") {
+          props.navigation.navigate("AdminDashboard");
+        } else {
+          props.navigation.navigate("Home");
+        }
+      } else {
+        Alert.alert("Error", "No se encontró el perfil del usuario");
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error", "El usuario o contraseña son incorrectos");
     }
-
-    signInWithEmailAndPassword(auth, username, password)
-      .then(() => {
-        navigation.navigate('Home')
-      })
-      .catch(() => {
-        Alert.alert('Error', 'Usuario o contraseña incorrectos')
-      })
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <View style={styles.innerContainer}>
+        {/* Logo o imagen decorativa */}
+        <View style={styles.logoContainer}>
+        
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Usuario"
-        value={username}
-        onChangeText={(text) => setUsername(text)}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
+        <Text style={styles.title}>Bienvenido</Text>
+        <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        value={password}
-        onChangeText={(text) => setPassword(text)}
-        secureTextEntry
-      />
+        <View style={styles.cardContainer}>
+          <Text style={styles.title}>Bienvenido</Text>
+          <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
 
-      <Button title="Ingresar" onPress={handleLogin} />
-    </View>
-  )
+          <View style={styles.formContainer}>
+            <Text style={styles.label}>Correo electrónico</Text>
+            <TextInput
+              style={[styles.input, isFocusedEmail && styles.inputFocused]}
+              placeholder="tucorreo@ejemplo.com"
+              value={email}
+              onChangeText={(text) => setEmail(text)}
+              keyboardType="email-address"
+              placeholderTextColor="#9CA3AF"
+              onFocus={() => setIsFocusedEmail(true)}
+              onBlur={() => setIsFocusedEmail(false)}
+            />
+
+            <Text style={styles.label}>Contraseña</Text>
+            <TextInput
+              style={[styles.input, isFocusedPassword && styles.inputFocused]}
+              placeholder="••••••••"
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+              secureTextEntry
+              placeholderTextColor="#9CA3AF"
+              onFocus={() => setIsFocusedPassword(true)}
+              onBlur={() => setIsFocusedPassword(false)}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.button} onPress={Logueo}>
+            <Text style={styles.buttonText}>Iniciar sesión</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.forgotPassword}>
+            <Text style={styles.forgotPasswordText}>
+              ¿Olvidaste tu contraseña?
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>¿No tienes cuenta?</Text>
+            <TouchableOpacity
+              onPress={() => props.navigation.navigate("Register")}
+            >
+              <Text style={styles.link}>Regístrate</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#F9FAFB",
+  },
+  innerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 30,
+  },
+  logo: {
+    width: 600,  
+    height: 130, 
+    alignSelf: "center",
+    marginBottom: 30,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+    fontSize: 32,
+    fontWeight: "700",
+    marginBottom: 8,
+    textAlign: "center",
+    color: "#111827",
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 40,
+  },
+  formContainer: {
+    marginBottom: 30,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#374151",
+    marginBottom: 8,
+    marginLeft: 5,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#999',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
+    height: 56,
+    borderColor: "#E5E7EB",
+    borderWidth: 1.5,
+    borderRadius: 12,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    backgroundColor: "#FFFFFF",
+    color: "#111827",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    elevation: 1,
   },
-})
+  inputFocused: {
+    borderColor: "#7EBFAD",
+    shadowColor: "#7EBFAD",
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  button: {
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: "#7EBFAD",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    shadowColor: "#7EBFAD",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  forgotPassword: {
+    alignSelf: "center",
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+  },
+  footerText: {
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  link: {
+    fontSize: 14,
+    color: "#7EBFAD",
+    fontWeight: "600",
+    marginLeft: 5,
+    textDecorationLine: "underline",
+  },
+
+  logoContainer: {
+    position: "absolute",
+    top: 60, // puedes ajustar según lo necesites
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 2,
+  },
+
+
+  cardContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: "30%", // Ajusta este valor según hasta dónde quieras que suba el bloque
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+});

@@ -5,9 +5,9 @@ export default function Home () {
 
     return (
       <View>
-        <Text> textInComponent </Text>
+        <Text> Hola Mundo </Text>
       </View>
-    )
+    );
   
 }
 
