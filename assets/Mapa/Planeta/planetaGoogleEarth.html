@@ -1,7 +1,10 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
     <title>Map</title>
@@ -48,14 +51,11 @@
         border: 0;
       }
 
-      
-
       .searchIconRight {
         width: 20;
         height: 20;
         margin-right: 7.5%;
       }
-
     </style>
 
     <script type="module">
@@ -111,18 +111,22 @@
             durationMillis: 5000,
           });
 
-          if (window.ReactNativeWebView) {
-            window.ReactNativeWebView.postMessage(
-              JSON.stringify({
-                lat: event.position.lat,
-                lng: event.position.lng,
-              })
-            );
-          }
+          sendPosToNative(event.position.lat, event.position.lng);
         });
 
         document.body.append(map);
         initAutocomplete();
+      }
+
+      function sendPosToNative() {
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(
+            JSON.stringify({
+              lat: event.position.lat,
+              lng: event.position.lng,
+            })
+          );
+        }
       }
 
       async function createSelectedMarker(lat, lng, elevation) {
@@ -170,9 +174,15 @@
 
         placeAutocomplete.id = "place-autocomplete-input";
         const card = document.getElementById("pac-container1");
-
-        console.log(placeAutocomplete)
         card.appendChild(placeAutocomplete);
+        const input = placeAutocomplete.Eg;
+
+        const widgetContainer = placeAutocomplete.Pg;
+        if (widgetContainer) {
+          widgetContainer.style.border = "none";
+          widgetContainer.style.boxShadow = "none";
+          widgetContainer.style.background = "transparent";
+        }
 
         placeAutocomplete.addEventListener(
           "gmp-select",
@@ -186,6 +196,7 @@
               window.alert("No viewport for input: " + place.displayName);
               return;
             }
+            input.blur();
             flyToPlace(place);
           }
         );
@@ -207,6 +218,7 @@
         selectionMarker.position = { lat: location.lat(), lng: location.lng() };
         selectionMarker.altitude = elevation + 75;
 
+        sendPosToNative(location.lat(), location.lng())
         // Fly to the marker.
         map.flyCameraTo({
           endCamera: {
@@ -257,6 +269,6 @@
 
     <!-- prettier-ignore -->
     <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
-        ({key: "AIzaSyAJQRmw2_EHWpm09g2Q1WbHJJ6jfpG5MnI", v: "beta",});</script>
+        ({key: "API_KEY", v: "beta",});</script>
   </body>
 </html>

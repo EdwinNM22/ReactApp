@@ -78,14 +78,11 @@ export default function Map(){
         }
     }
 
-    console.log('re render')
-    console.log(currentWeather)
-
     return (
         <SafeAreaView style={styles.appContainer}>
 
             {/* Barra de busqueda */}
-            <LinearGradient 
+            {/* <LinearGradient 
                 colors={['#dcdfea', '#b3b6c0']} 
                 start={{ x: 0.5, y: 0 }} 
                 end={{ x: 1, y: 0 }} 
@@ -99,7 +96,7 @@ export default function Map(){
                 />
 
                 <Image source={buscarIcono} style={styles.searchIconRight}/>
-            </LinearGradient>
+            </LinearGradient> */}
 
             {/* Mapa */}
             <View style={styles.mapContainer}>
@@ -112,7 +109,6 @@ export default function Map(){
                     onMessage={(event) =>{
                         const {lat, lng} = JSON.parse(event.nativeEvent.data)
                         requestWeather(lat, lng)
-                        console.log(lat,lng)
                     }}
                 />
             </View>
@@ -251,8 +247,7 @@ const styles = StyleSheet.create({
     mapContainer:{
         position:'absolute',
         width:'100%',
-        height:'100%',
-        bottom:'16%'
+        height:'75%',
     },
 
     /// Weather
