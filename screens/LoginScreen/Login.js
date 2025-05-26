@@ -69,7 +69,7 @@ export default function Login(props) {
             <Text style={styles.label}>Contraseña</Text>
             <TextInput
               style={[styles.input, isFocusedPassword && styles.inputFocused]}
-              placeholder="••••••••"
+              placeholder="su contraseña"
               value={password}
               onChangeText={(text) => setPassword(text)}
               secureTextEntry

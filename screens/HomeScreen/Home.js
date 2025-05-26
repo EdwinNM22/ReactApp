@@ -1,9 +1,37 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 const Home = ({ navigation }) => {
+
+  const handleAuthAndNavigate = async () => {
+    try {
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+      if (!hasHardware || !isEnrolled) {
+        Alert.alert('Autenticación no disponible', 'Tu dispositivo no tiene huella configurada.');
+        return;
+      }
+
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Autenticación requerida',
+        fallbackLabel: 'Usar contraseña',
+        cancelLabel: 'Cancelar'
+      });
+
+      if (result.success) {
+        navigation.navigate('User');
+      } else {
+        Alert.alert('Autenticación fallida', 'No se pudo verificar tu identidad.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Hubo un problema con la autenticación.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground 
@@ -49,17 +77,17 @@ const Home = ({ navigation }) => {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Botón Cuenta */}
+            {/* Botón Cuenta con huella */}
             <TouchableOpacity 
               style={[styles.button, styles.accountButton]}
-              onPress={() => navigation.navigate('Account')}
+              onPress={handleAuthAndNavigate}
             >
               <LinearGradient
                 colors={['#f857a6', '#ff5858']}
                 style={styles.buttonGradient}
               >
                 <Icon name="account-cog" size={40} color="white" />
-                <Text style={styles.buttonText}>Mi Cuenta</Text>
+                <Text style={styles.buttonText}>Manage Users</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
