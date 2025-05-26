@@ -58,9 +58,10 @@ const Home = ({ navigation }) => {
               <LinearGradient
                 colors={['#4facfe', '#00f2fe']}
                 style={styles.buttonGradient}
+                
               >
                 <Icon name="weather-partly-cloudy" size={40} color="white" />
-                <Text style={styles.buttonText}>Ver Clima</Text>
+                <Text style={styles.buttonText}>Sensores</Text>
               </LinearGradient>
             </TouchableOpacity>
 
