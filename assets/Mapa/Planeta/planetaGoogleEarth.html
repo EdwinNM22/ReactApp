@@ -1,13 +1,12 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-
     <title>Map</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
       html,
@@ -18,43 +17,88 @@
         height: 100%;
         margin: 0;
         padding: 0;
+        font-family: 'Roboto', Arial, sans-serif;
       }
 
       .searchContainer {
-        width: 75%;
-        height: 5%;
+        width: 85%;
+        max-width: 600px;
+        height: 50px;
         display: flex;
-
         position: absolute;
         margin: 0 auto;
         left: 0;
         right: 0;
-        top: 20%;
+        top: 30px;
         align-items: center;
-
-        border-radius: 22.5px;
-
-        background: linear-gradient(to right, #dcdfea 90%, #b3b6c0 100%);
+        border-radius: 30px;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         z-index: 1;
+        transition: all 0.3s ease;
+      }
+
+      .searchContainer:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
       }
 
       .searchIconLeft {
-        width: 20;
-        height: 20;
-
-        margin-left: 7.5%;
+        margin-left: 15px;
+        color: #555;
+        font-size: 18px;
       }
 
       #pac-container1 {
         flex: 1;
-
+        height: 100%;
         border: 0;
       }
 
       .searchIconRight {
-        width: 20;
-        height: 20;
-        margin-right: 7.5%;
+        margin-right: 15px;
+        color: #555;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .searchIconRight:hover {
+        color: #0066ff;
+        transform: scale(1.1);
+      }
+
+      /* Estilos para el input de búsqueda */
+      .pac-container {
+        border-radius: 0 0 30px 30px;
+        margin-top: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .pac-item {
+        padding: 10px 15px;
+        font-size: 14px;
+      }
+
+      .pac-item:hover {
+        background-color: #f5f5f5;
+      }
+
+      .pac-item-query {
+        font-size: 15px;
+        color: #333;
+      }
+
+      @media (max-width: 768px) {
+        .searchContainer {
+          width: 90%;
+          height: 45px;
+          top: 50px;
+        }
+        
+        .searchIconLeft,
+        .searchIconRight {
+          font-size: 16px;
+        }
       }
     </style>
 
@@ -62,6 +106,8 @@
       let map = null;
       let selectionMarker = null;
       let lastPos = { lat: 0, lng: 0 };
+      let placeAutocomplete = null;
+      let autocompleteInput = null;
 
       async function init() {
         const { Map3DElement, Marker3DInteractiveElement, LocationClickEvent } =
@@ -73,19 +119,23 @@
             lng: -87.62431009063006,
             altitude: 262.47071941677865,
           },
-
           tilt: 16.503231077694828,
           range: 8728263.224322798,
           heading: 7.060657129513467,
           roll: 0,
-
           mode: "HYBRID",
         });
 
+        // Evento para cerrar el teclado al hacer click en el mapa
         map.addEventListener("gmp-click", async (event) => {
           event.preventDefault();
+          
+          // Cerrar el teclado si está abierto
+          if(autocompleteInput) {
+            autocompleteInput.blur();
+          }
+          
           if (!event.position) return;
-
           const elevation = await getElevationforPoint(event.position);
 
           if (!selectionMarker) {
@@ -116,6 +166,16 @@
 
         document.body.append(map);
         initAutocomplete();
+        
+        // Evento para cerrar el teclado al hacer click fuera
+        document.addEventListener('click', function(event) {
+          const searchContainer = document.getElementById('pac-card');
+          const isClickInside = searchContainer.contains(event.target);
+          
+          if (!isClickInside && autocompleteInput) {
+            autocompleteInput.blur();
+          }
+        });
       }
 
       function sendPosToNative(lat, lng) {
@@ -130,6 +190,8 @@
         }
       }
 
+
+      
       async function createSelectedMarker(lat, lng, elevation) {
         const { Marker3DInteractiveElement } = await google.maps.importLibrary(
           "maps3d"
@@ -168,21 +230,21 @@
           "places"
         );
 
-        const placeAutocomplete =
-          new google.maps.places.PlaceAutocompleteElement({
-            includedPrimaryTypes: ["locality"],
-          });
+        placeAutocomplete = new google.maps.places.PlaceAutocompleteElement({
+          includedPrimaryTypes: ["locality"],
+        });
 
         placeAutocomplete.id = "place-autocomplete-input";
         const card = document.getElementById("pac-container1");
         card.appendChild(placeAutocomplete);
-        const input = placeAutocomplete.Eg;
+        autocompleteInput = placeAutocomplete.Eg;
 
         const widgetContainer = placeAutocomplete.Pg;
         if (widgetContainer) {
           widgetContainer.style.border = "none";
           widgetContainer.style.boxShadow = "none";
           widgetContainer.style.background = "transparent";
+          widgetContainer.style.height = "100%";
         }
 
         placeAutocomplete.addEventListener(
@@ -192,12 +254,11 @@
             await place.fetchFields({
               fields: ["displayName", "location", "id"],
             });
-            // If the place has a geometry, then present it on a map.
             if (!place.location) {
               window.alert("No viewport for input: " + place.displayName);
               return;
             }
-            input.blur();
+            autocompleteInput.blur();
             flyToPlace(place);
           }
         );
@@ -208,8 +269,6 @@
           await google.maps.importLibrary("maps3d");
 
         const location = place.location;
-
-        // We need to find the elevation for the point so we place the marker at 50m above the elevation.
         const elevation = await getElevationforPoint(location);
 
         if (!selectionMarker) {
@@ -220,7 +279,6 @@
         selectionMarker.altitude = elevation + 75;
 
         sendPosToNative(location.lat(), location.lng())
-        // Fly to the marker.
         map.flyCameraTo({
           endCamera: {
             center: {
@@ -240,7 +298,6 @@
         const { ElevationService } = await google.maps.importLibrary(
           "elevation"
         );
-        // Get place elevation using the ElevationService.
         const elevatorService = new google.maps.ElevationService();
         const elevationResponse =
           await elevatorService.getElevationForLocations({
@@ -263,13 +320,13 @@
     <div id="map"></div>
 
     <div class="searchContainer" id="pac-card">
-      <img class="searchIconLeft" src="../Iconos/PlanetaIcono.png" />
+      <i class="fas fa-globe-americas searchIconLeft"></i>
       <div id="pac-container1"></div>
-      <img class="searchIconRight" src="../Iconos/BuscarIcono.png" />
+      <i class="fas fa-search searchIconRight"></i>
     </div>
 
     <!-- prettier-ignore -->
     <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
-        ({key: "API_KEY", v: "beta",});</script>
+        ({key: "AIzaSyBJ9QK2LgyfN-RdLLhubZgeFjTF8LcSkQ4", v: "beta",});</script>
   </body>
 </html>

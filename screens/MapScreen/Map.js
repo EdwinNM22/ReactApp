@@ -79,34 +79,15 @@ export default function Map(){
     }
 
     return (
-        <SafeAreaView style={styles.appContainer}>
-
-            {/* Barra de busqueda */}
-            {/* <LinearGradient 
-                colors={['#dcdfea', '#b3b6c0']} 
-                start={{ x: 0.5, y: 0 }} 
-                end={{ x: 1, y: 0 }} 
-                style={styles.searchContainer}
-            >
-                <Image source={planetaIcono} style={styles.searchIconLeft}/>
-
-                <TextInput 
-                    style={styles.searchBar}
-                    placeholder="Buscar"
-                />
-
-                <Image source={buscarIcono} style={styles.searchIconRight}/>
-            </LinearGradient> */}
-
-            {/* Mapa */}
+         <SafeAreaView style={styles.appContainer}>
+            {/* Mapa*/}
             <View style={styles.mapContainer}>
                 <WebView
                     ref={planetRef}
                     source={planetaHtml}
-                    startInLoadingState = {true}
+                    startInLoadingState={true}
                     style={styles.earth}
-                    
-                    onMessage={(event) =>{
+                    onMessage={(event) => {
                         const {lat, lng} = JSON.parse(event.nativeEvent.data)
                         requestWeather(lat, lng)
                     }}
@@ -201,111 +182,87 @@ export default function Map(){
 }
 
 const styles = StyleSheet.create({
-    appContainer:{
-        flex:1,
+    appContainer: {
+        flex: 1,
+        backgroundColor: '#f0f0f0',
+    },
+    /// Mapa 
+    mapContainer: {
+        flex: 1,  
+        width: '100%',
+        height: '100%',
+    },
+    earth: {
+        flex: 1,
+        backgroundColor: 'transparent',
     },
 
-    /// Barra de busqueda
-    searchContainer:{
-        display:'flex',
-        flexDirection:'row',
-
-        width:'75%',
-        height:'5%',
-        position:'absolute',
-        alignSelf:'center',
-        alignItems:'center',
-        
-        top:'25%',
-        
-        borderRadius:22.5,
-
-        zIndex:1
+    /// Weather 
+    weatherContainer: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        paddingBottom: 20,
+        alignItems: 'center',
     },
-    searchBar:{
-        flex:1,
-        marginLeft:'5%',
-        padding:4,
-
-        fontSize:16,
-        fontFamily:'MollenBold',
+    weatherHeader: {
+        marginTop: 20,
+        marginBottom: 15,
+        fontSize: 25,
+        fontFamily: 'MollenBold',
+        color: '#333',
+        textShadowColor: 'rgba(255,255,255,0.8)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10,
     },
-    searchIconLeft:{
-        width:20,
-        height:20,
-
-        marginLeft:'7.5%'
+    weatherItemsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 20,
+        paddingHorizontal: 10,
+        flexWrap: 'wrap',
     },
-    searchIconRight:{
-        width:20,
-        height:20,
-
-        marginRight:'7.5%'
+    weatherItem: {
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.85)',
+        borderRadius: 15,
+        padding: 15,
+        minWidth: 100,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        marginBottom: 10,
     },
-
-    /// Mapa
-    mapContainer:{
-        position:'absolute',
-        width:'100%',
-        height:'75%',
+    weatherLabel: {
+        marginBottom: 8,
+        fontFamily: 'MollenBold',
+        fontSize: 12,
+        color: '#555',
     },
-
-    /// Weather
-    weatherContainer:{
-        flex:0.325,
-        width:'100%',
-        height:'100%',
-        marginTop:'auto',
-        alignItems:'center',
-
+    weatherIcon: {
+        width: 50,
+        height: 50,
+        marginVertical: 5,
     },
-    weatherHeader:{
-        marginTop:'12.5%',
-        marginBottom:'5%',
-
-        fontSize:25,
-        fontFamily:'MollenBold',
-
-        zIndex:1
+    humidtyIcon: {
+        width: 50,
+        height: 50,
+        marginVertical: 5,
     },
-    weatherItemsContainer:{
-        display:'flex',
-        flexDirection:'row',    
-        gap:50
+    weatherTemperature: {
+        textAlign: 'center',
+        fontFamily: 'MollenBold',
+        fontSize: 18,
+        color: '#222',
+        marginTop: 5,
     },
-        weatherItem:{
-            alignItems:'center'
-        },
-        weatherLabel:{
-            marginTop:"10%",
-            marginBottom:"5%",
-            right:2.5,
-
-            fontFamily:'MollenBold',
-            fontSize:10
-        },
-        weatherIcon:{
-            width:60,
-            height:60,
-        },
-        humidtyIcon:{
-            width:60,
-            height:60,
-            transform: [{ scale: 0.8 }],
-        },
-        weatherTemperature: {
-            width: 80,
-
-            textAlign: 'center',
-            fontFamily: 'MollenBold',
-            fontSize: 18
-        },
-    weatherBackground:{
-        position:'absolute',
-        width: 385,
-        height: 385,
-        
-        zIndex:0
+    weatherBackground: {
+        ...StyleSheet.absoluteFillObject,
+        width: '100%',
+        height: '100%',
+        opacity: 0.7,
+        zIndex: -1,
     },
-        
-})
+});
