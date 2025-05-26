@@ -8,6 +8,9 @@ import Home from './screens/HomeScreen/Home';
 import Register from './screens/RegisterScreen/Register';
 import Map from './screens/MapScreen/Map';
 import User from './screens/UserManage/User';
+import Sensor from './screens/SensorScreen/Sensor';
+
+
 
 const Stack = createStackNavigator();
 
@@ -16,10 +19,12 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Map" component={Map} options={{ headerShown: false }} />
+        <Stack.Screen name="Weather" component={Sensor} />
         <Stack.Screen name="User" component={User} />
+
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>                          
