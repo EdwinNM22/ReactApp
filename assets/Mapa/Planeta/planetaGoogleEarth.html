@@ -20,6 +20,29 @@
         font-family: 'Roboto', Arial, sans-serif;
       }
 
+      .resetContainer {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        position: absolute;
+        margin: 0 auto;
+        left: 0;
+        top: 75px;
+        align-items: center;
+        z-index: 1;
+        transition: all 0.3s ease;
+      }
+      .resetButton{
+        width: 100%;
+        height: 100%;
+        border-radius: 30px;
+        background-color: white;
+      }
+      .resetContainer i{
+        color: #555;
+        font-size: 18px;
+      }
+
       .searchContainer {
         width: 85%;
         max-width: 600px;
@@ -108,6 +131,7 @@
       let lastPos = { lat: 0, lng: 0 };
       let placeAutocomplete = null;
       let autocompleteInput = null;
+      let resetViewButton = document.getElementsByClassName("resetButton")[0];
 
       async function init() {
         const { Map3DElement, Marker3DInteractiveElement, LocationClickEvent } =
@@ -131,9 +155,8 @@
           event.preventDefault();
           
           // Cerrar el teclado si está abierto
-          if(autocompleteInput) {
-            autocompleteInput.blur();
-          }
+
+          autocompleteInput.blur();
           
           if (!event.position) return;
           const elevation = await getElevationforPoint(event.position);
@@ -167,15 +190,23 @@
         document.body.append(map);
         initAutocomplete();
         
-        // Evento para cerrar el teclado al hacer click fuera
-        document.addEventListener('click', function(event) {
-          const searchContainer = document.getElementById('pac-card');
-          const isClickInside = searchContainer.contains(event.target);
-          
-          if (!isClickInside && autocompleteInput) {
-            autocompleteInput.blur();
-          }
-        });
+        console.log(resetViewButton)
+        resetViewButton.addEventListener('click', () =>{
+          map.flyCameraTo({
+            endCamera:{
+              center: {
+                lat: 14.101642551391308,
+                lng: -87.62431009063006,
+                altitude: 262.47071941677865,
+              },
+              tilt: 16.503231077694828,
+              range: 8728263.224322798,
+              heading: 7.060657129513467,
+              roll: 0,
+            },
+            durationMillis: 2000
+          })
+        })
       }
 
       function sendPosToNative(lat, lng) {
@@ -190,8 +221,6 @@
         }
       }
 
-
-      
       async function createSelectedMarker(lat, lng, elevation) {
         const { Marker3DInteractiveElement } = await google.maps.importLibrary(
           "maps3d"
@@ -259,6 +288,7 @@
               return;
             }
             autocompleteInput.blur();
+            autocompleteInput.value = ""
             flyToPlace(place);
           }
         );
@@ -318,8 +348,15 @@
   </head>
   <body>
     <div id="map"></div>
-
+    
     <div class="searchContainer" id="pac-card">
+
+      <div class="resetContainer">
+        <button class="resetButton">
+          <i class="fa-solid fa-rotate"></i>
+        </button>
+      </div>
+
       <i class="fas fa-globe-americas searchIconLeft"></i>
       <div id="pac-container1"></div>
       <i class="fas fa-search searchIconRight"></i>
@@ -327,6 +364,6 @@
 
     <!-- prettier-ignore -->
     <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
-        ({key: "AIzaSyBJ9QK2LgyfN-RdLLhubZgeFjTF8LcSkQ4", v: "beta",});</script>
+        ({key: "API_KEY", v: "beta",});</script>
   </body>
 </html>

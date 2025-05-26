@@ -34,29 +34,37 @@ export default function Sensor() {
   // ====== FIN SENSOR 1: BARÓMETRO ======
 
   // ====== SENSOR 2 y 3: BRÚJULA + UBICACIÓN GPS ======
-  useEffect(() => {
-    let subscription;
+useEffect(() => {
+  let subscription;
 
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permiso de ubicación denegado');
-        return;
-      }
+  (async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      setErrorMsg('Permiso de ubicación denegado');
+      return;
+    }
 
-      // === SENSOR 2: BRÚJULA ===
-      subscription = await Location.watchHeadingAsync((headingData) => {
-        const angle = headingData.trueHeading ?? headingData.magHeading;
-        setHeading(Math.round(angle));
-        Animated.timing(animatedHeading, {
-          toValue: angle,
-          duration: 300,
-          useNativeDriver: true,
-          easing: Easing.inOut(Easing.ease),
-        }).start();
-        setCompassReady(true);
-      });
-      // === FIN SENSOR 2: BRÚJULA ===
+    // === SENSOR 2: BRÚJULA ===
+    subscription = await Location.watchHeadingAsync((headingData) => {
+      const angle = headingData.trueHeading ?? headingData.magHeading;
+      setHeading(Math.round(angle));
+      
+      // Calculate shortest path for rotation (to avoid full rotations when near 0/360)
+      const currentValue = animatedHeading.__getValue();
+      let diff = angle - currentValue;
+      if (diff > 180) diff -= 360;
+      if (diff < -180) diff += 360;
+      
+      Animated.timing(animatedHeading, {
+        toValue: currentValue + diff,
+        duration: 0, // Adjusted duration for smoother movement
+        useNativeDriver: true,
+        easing: Easing.out(Easing.quad), // Smoother easing function
+      }).start();
+      
+      setCompassReady(true);
+    });
+    // === FIN SENSOR 2: BRÚJULA ===
 
       // === SENSOR 3: UBICACIÓN GPS ===
       const loc = await Location.getCurrentPositionAsync({
