@@ -49,15 +49,6 @@ export default function Login(props) {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <View style={styles.innerContainer}>
-        {/* Logo o imagen decorativa */}
-        <View style={styles.logoContainer}>
-        
-        </View>
-
-        <Text style={styles.title}>Bienvenido</Text>
-        <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
-
         <View style={styles.cardContainer}>
           <Text style={styles.title}>Bienvenido</Text>
           <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
@@ -107,7 +98,6 @@ export default function Login(props) {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -116,17 +106,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
-  },
-  innerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 30,
-  },
-  logo: {
-    width: 600,  
-    height: 130, 
-    alignSelf: "center",
-    marginBottom: 30,
+    justifyContent: 'center'
   },
   title: {
     fontSize: 32,
@@ -235,11 +215,6 @@ const styles = StyleSheet.create({
 
 
   cardContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    top: "30%", // Ajusta este valor según hasta dónde quieras que suba el bloque
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,

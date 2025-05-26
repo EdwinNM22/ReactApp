@@ -1,0 +1,262 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+    <title>Map</title>
+
+    <style>
+      html,
+      map {
+        height: 100%;
+      }
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .searchContainer {
+        width: 75%;
+        height: 5%;
+        display: flex;
+
+        position: absolute;
+        margin: 0 auto;
+        left: 0;
+        right: 0;
+        top: 20%;
+        align-items: center;
+
+        border-radius: 22.5px;
+
+        background: linear-gradient(to right, #dcdfea 90%, #b3b6c0 100%);
+        z-index: 1;
+      }
+
+      .searchIconLeft {
+        width: 20;
+        height: 20;
+
+        margin-left: 7.5%;
+      }
+
+      #pac-container1 {
+        flex: 1;
+
+        border: 0;
+      }
+
+      
+
+      .searchIconRight {
+        width: 20;
+        height: 20;
+        margin-right: 7.5%;
+      }
+
+    </style>
+
+    <script type="module">
+      let map = null;
+      let selectionMarker = null;
+      let lastPos = { lat: 0, lng: 0 };
+
+      async function init() {
+        const { Map3DElement, Marker3DInteractiveElement, LocationClickEvent } =
+          await google.maps.importLibrary("maps3d");
+
+        map = new Map3DElement({
+          center: {
+            lat: 14.101642551391308,
+            lng: -87.62431009063006,
+            altitude: 262.47071941677865,
+          },
+
+          tilt: 16.503231077694828,
+          range: 8728263.224322798,
+          heading: 7.060657129513467,
+          roll: 0,
+
+          mode: "HYBRID",
+        });
+
+        map.addEventListener("gmp-click", async (event) => {
+          event.preventDefault();
+          if (!event.position) return;
+
+          const elevation = await getElevationforPoint(event.position);
+
+          if (!selectionMarker) {
+            await createSelectedMarker(
+              event.position.lat,
+              event.position.lng,
+              elevation
+            );
+          }
+          selectionMarker.position = event.position;
+
+          map.flyCameraTo({
+            endCamera: {
+              center: {
+                lat: event.position.lat,
+                lng: event.position.lng,
+                altitude: elevation + 50,
+              },
+              tilt: 65,
+              heading: 0,
+              range: 1000,
+            },
+            durationMillis: 5000,
+          });
+
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(
+              JSON.stringify({
+                lat: event.position.lat,
+                lng: event.position.lng,
+              })
+            );
+          }
+        });
+
+        document.body.append(map);
+        initAutocomplete();
+      }
+
+      async function createSelectedMarker(lat, lng, elevation) {
+        const { Marker3DInteractiveElement } = await google.maps.importLibrary(
+          "maps3d"
+        );
+
+        selectionMarker = new Marker3DInteractiveElement({
+          position: {
+            lat: lat,
+            lng: lng,
+            altitude: elevation + 50,
+          },
+          extruded: true,
+        });
+
+        selectionMarker.addEventListener("gmp-click", (event) => {
+          map.flyCameraTo({
+            endCamera: {
+              center: {
+                lat: event.position.lat,
+                lng: event.position.lng,
+                altitude: elevation + 50,
+              },
+              tilt: 65,
+              heading: 0,
+              range: 1000,
+            },
+            durationMillis: 5000,
+          });
+        });
+
+        map.append(selectionMarker);
+      }
+
+      async function initAutocomplete() {
+        const { PlaceAutocompleteElement } = await google.maps.importLibrary(
+          "places"
+        );
+
+        const placeAutocomplete =
+          new google.maps.places.PlaceAutocompleteElement({
+            includedPrimaryTypes: ["locality"],
+          });
+
+        placeAutocomplete.id = "place-autocomplete-input";
+        const card = document.getElementById("pac-container1");
+
+        console.log(placeAutocomplete)
+        card.appendChild(placeAutocomplete);
+
+        placeAutocomplete.addEventListener(
+          "gmp-select",
+          async ({ placePrediction }) => {
+            const place = placePrediction.toPlace();
+            await place.fetchFields({
+              fields: ["displayName", "location", "id"],
+            });
+            // If the place has a geometry, then present it on a map.
+            if (!place.location) {
+              window.alert("No viewport for input: " + place.displayName);
+              return;
+            }
+            flyToPlace(place);
+          }
+        );
+      }
+
+      const flyToPlace = async (place) => {
+        const { AltitudeMode, Polyline3DElement, Polygon3DElement } =
+          await google.maps.importLibrary("maps3d");
+
+        const location = place.location;
+
+        // We need to find the elevation for the point so we place the marker at 50m above the elevation.
+        const elevation = await getElevationforPoint(location);
+
+        if (!selectionMarker) {
+          await createSelectedMarker(location.lat(), location.lng(), elevation);
+        }
+
+        selectionMarker.position = { lat: location.lat(), lng: location.lng() };
+        selectionMarker.altitude = elevation + 75;
+
+        // Fly to the marker.
+        map.flyCameraTo({
+          endCamera: {
+            center: {
+              lat: location.lat(),
+              lng: location.lng(),
+              altitude: elevation + 50,
+            },
+            tilt: 65,
+            heading: 0,
+            range: 1000,
+          },
+          durationMillis: 5000,
+        });
+      };
+
+      async function getElevationforPoint(location) {
+        const { ElevationService } = await google.maps.importLibrary(
+          "elevation"
+        );
+        // Get place elevation using the ElevationService.
+        const elevatorService = new google.maps.ElevationService();
+        const elevationResponse =
+          await elevatorService.getElevationForLocations({
+            locations: [location],
+          });
+
+        if (!(elevationResponse.results && elevationResponse.results.length)) {
+          window.alert(`Insufficient elevation data for place: ${place.name}`);
+          return;
+        }
+        const elevation = elevationResponse.results[0].elevation || 10;
+
+        return elevation;
+      }
+
+      init();
+    </script>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <div class="searchContainer" id="pac-card">
+      <img class="searchIconLeft" src="../Iconos/PlanetaIcono.png" />
+      <div id="pac-container1"></div>
+      <img class="searchIconRight" src="../Iconos/BuscarIcono.png" />
+    </div>
+
+    <!-- prettier-ignore -->
+    <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+        ({key: "AIzaSyAJQRmw2_EHWpm09g2Q1WbHJJ6jfpG5MnI", v: "beta",});</script>
+  </body>
+</html>

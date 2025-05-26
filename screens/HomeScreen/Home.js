@@ -38,7 +38,7 @@ const Home = ({ navigation }) => {
             {/* Botón Mapa */}
             <TouchableOpacity 
               style={[styles.button, styles.mapButton]}
-              onPress={() => navigation.navigate('MapScreen')}
+              onPress={() => navigation.navigate('Map')}
             >
               <LinearGradient
                 colors={['#38ef7d', '#11998e']}
