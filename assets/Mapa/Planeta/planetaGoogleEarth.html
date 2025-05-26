@@ -118,12 +118,13 @@
         initAutocomplete();
       }
 
-      function sendPosToNative() {
+      function sendPosToNative(lat, lng) {
+        console.log('try')
         if (window.ReactNativeWebView) {
           window.ReactNativeWebView.postMessage(
             JSON.stringify({
-              lat: event.position.lat,
-              lng: event.position.lng,
+              lat: lat,
+              lng: lng
             })
           );
         }
