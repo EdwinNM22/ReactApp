@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import appFirebase from "../../firebase-config";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
+import useRoleStore from "./useRoleStore";
 
 const auth = getAuth(appFirebase);
 const db = getFirestore(appFirebase);
@@ -13,6 +14,7 @@ export default function Login(props) {
   const [password, setPassword] = useState("");
   const [isFocusedEmail, setIsFocusedEmail] = useState(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState(false);
+  const setUserRole = useRoleStore((state) => state.setUserRole);
 
   const Logueo = async () => {
     try {
@@ -29,12 +31,9 @@ export default function Login(props) {
 
       if (docSnap.exists()) {
         const rol = docSnap.data().rol;
+        setUserRole(rol)
 
-        if (rol === "ADMIN") {
-          props.navigation.navigate("AdminDashboard");
-        } else {
-          props.navigation.navigate("Home");
-        }
+        props.navigation.navigate("Home");
       } else {
         Alert.alert("Error", "No se encontró el perfil del usuario");
       }

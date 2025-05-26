@@ -8,9 +8,6 @@ import planetaHtml from '../../assets/Mapa/Planeta/planetaGoogleEarth.html'
     import weatherBackground from '../../assets/Mapa/Clima/WeatherBG.png'
 
     // Iconos
-    import planetaIcono from '../../assets/Mapa/Iconos/PlanetaIcono.png'
-    import buscarIcono from '../../assets/Mapa/Iconos/BuscarIcono.png'
-    
     import climaSolIcono from '../../assets/Mapa/Clima/ClimaSoleado.png'
     import climaNubesIcono from '../../assets/Mapa/Clima/ClimaNublado.png'
     import climaLluviaIcono from '../../assets/Mapa/Clima/ClimaLluvioso.png'
@@ -21,7 +18,7 @@ import planetaHtml from '../../assets/Mapa/Planeta/planetaGoogleEarth.html'
 import { useFonts } from "expo-font";
     import mollenPersonalRegular from '../../assets/Mapa/Fonts/mollenPersonalRegular.otf'
     import mollenPersonalBold from '../../assets/Mapa/Fonts/mollenPersonalBold.otf'
-import Loading from "./Components/Loading";
+import Wait from "./Components/Wait";
         
 
 export default function Map(){
@@ -30,7 +27,7 @@ export default function Map(){
         condicion: '',
         temperatura: ''
     })
-    const [isLoadingWeather, setIsLoadingWeather] = useState(true)
+    const [isWaiting, setIsWaiting] = useState(true)
 
     const planetRef = useRef(null)
     
@@ -40,16 +37,12 @@ export default function Map(){
     })
         
     if (!fontsLoaded){
-        return(
-            <View>
-                <Text>Loading</Text>
-            </View>
-        )
+        return(<Wait/>)
     }
     
     async function requestWeather(lat, lng){
         try {
-            setIsLoadingWeather(true)
+            setIsWaiting(true)
 
             const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=54404e2dafa21cde397237dbfa9ccb48`)
             const weatherData = await response.json()
@@ -61,7 +54,7 @@ export default function Map(){
                 humedad: weatherData.main.humidity + "%",
                 aire: weatherData.wind.speed + "km/h"
             })
-            setIsLoadingWeather(false)
+            setIsWaiting(false)
         } catch (error) {
             console.error(error)
         }
@@ -75,6 +68,8 @@ export default function Map(){
                 return climaNubesIcono
             case "Rain":
                 return climaLluviaIcono
+            default:
+                return climaNubesIcono
         }
     }
 
@@ -112,67 +107,62 @@ export default function Map(){
             
                 {/* Contenedor de items  */}
                 <View style={styles.weatherItemsContainer}>
-                    
-                    {/* Item 1  */}
+
+                    {/* Item 1 */}
                     <View style={styles.weatherItem}>
-                        {(isLoadingWeather && currentWeather.humedad) 
-                            ? <Loading/>
-                            : <>
-                                <Text style={styles.weatherLabel}>
-                                    Humedad
-                                </Text>
-
-                                {currentWeather.humedad 
-                                    ? <Image source={humedadIcono} style={styles.humidtyIcon}/>
-                                    : <Text>...</Text>
-                                }
-
-                                <Text style={styles.weatherTemperature}>
-                                    {currentWeather.humedad
-                                        ? currentWeather.humedad  
-                                        : ".."
-                                    }
-                                </Text>
-                              </>
-                        }
+                    <Text style={styles.weatherLabel}>Humedad</Text>
+                    
+                    {isWaiting || !currentWeather.humedad 
+                        ? (<Wait />) 
+                        : (<>
+                            <Image 
+                                source={humedadIcono} 
+                                style={styles.humidtyIcon} 
+                            />
+                            
+                            <Text style={styles.weatherText}>
+                                {currentWeather.humedad || ".."}
+                            </Text>
+                            </>
+                        )}
                     </View>
-
+                    
                     {/* Item 2 */}
                     <View style={styles.weatherItem}>
-                        <Text style={styles.weatherLabel}>
-                            Temperatura
-                        </Text>
+                    <Text style={styles.weatherLabel}>Temperatura</Text>
 
-                        {currentWeather.condicion 
-                            ? <Image source={getWeatherIcon()} style={styles.weatherIcon}/>
-                            : <Text>...</Text>
-                        }
-
-                        <Text style={styles.weatherTemperature}>
-                            {currentWeather.temperatura
-                                ? currentWeather.temperatura  
-                                : ".."
-                            }
-                        </Text>
+                    {isWaiting || !currentWeather.temperatura 
+                        ? (<Wait />) 
+                        : (<>
+                            <Image 
+                                source={getWeatherIcon()} 
+                                style={styles.weatherIcon} 
+                            />
+                            
+                            <Text style={styles.weatherText}>
+                                {currentWeather.temperatura || ".."}
+                            </Text>
+                            </>
+                        )}
                     </View>
-
+                    
                     {/* Item 3 */}
                     <View style={styles.weatherItem}>
-                        <Text style={styles.weatherLabel}>
-                            Aire
-                        </Text>
-
-                        {currentWeather.aire 
-                            ? <Image source={aireIcono} style={styles.humidtyIcon}/>
-                            : <Text>...</Text>
-                        }
-
-                        <Text style={styles.weatherTemperature}>
-                            {currentWeather.aire
-                                ? currentWeather.aire  
-                                : ".."
-                            }
-                        </Text>
+                    <Text style={styles.weatherLabel}>Aire</Text>
+                    
+                    {isWaiting || !currentWeather.aire 
+                        ? (<Wait />) 
+                        : (<>
+                            <Image 
+                                source={aireIcono} 
+                                style={styles.weatherIcon} 
+                            />
+                            
+                            <Text style={styles.weatherText}>
+                                {currentWeather.aire || ".."}
+                            </Text>
+                            </>
+                        )}
                     </View>
                 </View>
             </View>
@@ -251,7 +241,7 @@ const styles = StyleSheet.create({
         height: 50,
         marginVertical: 5,
     },
-    weatherTemperature: {
+    weatherText: {
         textAlign: 'center',
         fontFamily: 'MollenBold',
         fontSize: 18,

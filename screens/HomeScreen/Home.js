@@ -1,10 +1,11 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as LocalAuthentication from 'expo-local-authentication';
+import useRoleStore from '../LoginScreen/useRoleStore';
 
 const Home = ({ navigation }) => {
+  const userRole = useRoleStore((state) => state.userRole);
 
   const handleAuthAndNavigate = async () => {
     try {
@@ -78,18 +79,20 @@ const Home = ({ navigation }) => {
             </TouchableOpacity>
 
             {/* Botón Cuenta con huella */}
-            <TouchableOpacity 
-              style={[styles.button, styles.accountButton]}
-              onPress={handleAuthAndNavigate}
-            >
-              <LinearGradient
-                colors={['#f857a6', '#ff5858']}
-                style={styles.buttonGradient}
-              >
-                <Icon name="account-cog" size={40} color="white" />
-                <Text style={styles.buttonText}>Manage Users</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+            {(userRole == "ADMIN") 
+              && <TouchableOpacity 
+                  style={[styles.button, styles.accountButton]}
+                  onPress={handleAuthAndNavigate}
+                  >
+                    <LinearGradient
+                        colors={['#f857a6', '#ff5858']}
+                        style={styles.buttonGradient}
+                        >
+                        <Icon name="account-cog" size={40} color="white" />
+                        <Text style={styles.buttonText}>Manage Users</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+            }
           </View>
 
           <View style={styles.footer}>

@@ -3,6 +3,7 @@ import { Text, StyleSheet, View, TextInput, TouchableOpacity, Alert, FlatList, M
 import { getAuth, updateEmail, reauthenticateWithCredential, EmailAuthProvider, signOut } from 'firebase/auth';
 import { getFirestore, doc, updateDoc, getDocs, collection, deleteDoc } from 'firebase/firestore';
 import appFirebase from "../../firebase-config";
+import useRoleStore from '../LoginScreen/useRoleStore';
 
 const auth = getAuth(appFirebase);
 const db = getFirestore(appFirebase);
@@ -17,6 +18,7 @@ export default function UserAdmin({ navigation }) {
     email: '',
     rol: 'USER'
   });
+  const setUserRole = useRoleStore((state) => state.setUserRole);
 
   // Cargar lista de usuarios
   useEffect(() => {
@@ -64,7 +66,7 @@ export default function UserAdmin({ navigation }) {
         nombre: editData.nombre,
         rol: editData.rol
       });
-
+      setUserRole(editData.rol)
 
       Alert.alert('Éxito', 'Usuario actualizado correctamente');
       setModalVisible(false);

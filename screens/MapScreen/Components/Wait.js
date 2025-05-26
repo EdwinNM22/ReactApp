@@ -1,8 +1,8 @@
 import { StyleSheet, Text } from "react-native";
 
-export default function Loading(){
+export default function Wait(){
     return(
-        <Text style={styles.text}>Loading</Text>
+        <Text style={styles.text}>...</Text>
     )
 }
 
